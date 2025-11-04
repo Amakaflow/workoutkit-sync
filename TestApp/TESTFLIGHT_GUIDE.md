@@ -10,27 +10,71 @@
 
 ## Prerequisites
 
-1. **Apple Developer Account** (free account works for TestFlight)
-   - Sign up at: https://developer.apple.com
-   - Free account allows TestFlight for up to 10 testers
+### ⚠️ Important: Apple Developer Program Membership Required
 
-2. **App Store Connect** access
-   - Go to: https://appstoreconnect.apple.com
-   - Sign in with your Apple ID
+**You need a paid Apple Developer Program membership ($99/year) for TestFlight.**
 
-## Step 1: Create App in App Store Connect
+- **Free Apple Developer Account** (just signing in) is NOT enough
+- **TestFlight requires Apple Developer Program membership** ($99/year)
+- If you get redirected to `developer.apple.com/programs/` when trying to access App Store Connect, you need to enroll first
+
+### Option 1: Enroll in Apple Developer Program
+
+1. Go to https://developer.apple.com/programs/
+2. Click **Enroll** (or **Start Your Enrollment**)
+3. Complete the enrollment process ($99/year)
+4. Wait for approval (usually 24-48 hours)
+5. Once approved, you can access App Store Connect
+
+### Option 2: Alternative - Ad Hoc Distribution (No Paid Membership)
+
+If you don't want to pay $99/year, you can use **Ad Hoc Distribution** instead:
+
+- ✅ Works with free Apple Developer account
+- ✅ Can install on up to 100 devices (registered UDIDs)
+- ⚠️ Requires USB connection for installation
+- ⚠️ Need to re-sign app when it expires (7 days for free accounts, 1 year for paid)
+
+See `AD_HOC_GUIDE.md` for instructions on this method.
+
+### Option 3: Direct Installation (Development Build)
+
+For personal use, you can build and install directly:
+
+- ✅ No paid membership needed
+- ✅ Works with free Apple Developer account
+- ⚠️ App expires after 7 days (free account) or 1 year (paid account)
+- ⚠️ Requires USB connection
+- ⚠️ Need to rebuild/reinstall when expired
+
+See `HOW_TO_TEST.md` for this method.
+
+## Step 1: Verify Apple Developer Program Access
 
 1. Go to [App Store Connect](https://appstoreconnect.apple.com)
-2. Click **My Apps** → **+** → **New App**
-3. Fill in:
+2. Sign in with your Apple ID
+
+**If you get redirected to `developer.apple.com/programs/`:**
+- You need to enroll in the Apple Developer Program first
+- Go to https://developer.apple.com/programs/enroll/
+- Complete enrollment ($99/year)
+- Wait for approval
+
+**If you can access App Store Connect:**
+- Continue to Step 2
+
+## Step 2: Create App in App Store Connect
+
+1. In App Store Connect, click **My Apps** → **+** → **New App**
+2. Fill in:
    - **Platform**: iOS
    - **Name**: WorkoutKitSync (or your name)
    - **Primary Language**: English
    - **Bundle ID**: Create new (e.g., `com.yourname.workoutkitsync`)
    - **SKU**: Any unique identifier
-4. Click **Create**
+3. Click **Create**
 
-## Step 2: Build Your App in Xcode
+## Step 3: Build Your App in Xcode
 
 1. Open your Xcode project (from HOW_TO_TEST.md setup)
 2. In Xcode, select your target
@@ -40,7 +84,7 @@
 4. **Product** → **Archive**
 5. Wait for archive to complete
 
-## Step 3: Upload to App Store Connect
+## Step 4: Upload to App Store Connect
 
 1. **Window** → **Organizer** (or Shift+Cmd+O)
 2. Select your archive
@@ -53,7 +97,7 @@
 9. Click **Upload**
 10. Wait for upload to complete
 
-## Step 4: Add to TestFlight
+## Step 5: Add to TestFlight
 
 1. Go back to [App Store Connect](https://appstoreconnect.apple.com)
 2. Select your app
@@ -61,13 +105,13 @@
 4. Wait for processing (can take 10-30 minutes)
 5. Once processed, your build will appear
 
-## Step 5: Install TestFlight App
+## Step 6: Install TestFlight App
 
 1. On your iPhone, open **App Store**
 2. Search for **TestFlight**
 3. Install the **TestFlight** app (free, by Apple)
 
-## Step 6: Add Yourself as Tester
+## Step 7: Add Yourself as Tester
 
 1. In App Store Connect, go to **TestFlight** tab
 2. Click **Internal Testing** (or **External Testing**)
@@ -75,7 +119,7 @@
 4. Add your email address
 5. Click **Add**
 
-## Step 7: Install Your App
+## Step 8: Install Your App
 
 1. On your iPhone, open **TestFlight** app
 2. You should see an invitation email, or
@@ -83,7 +127,7 @@
 4. Your app will appear in TestFlight
 5. Tap **Install**
 
-## Step 8: Use Your App
+## Step 9: Use Your App
 
 1. Find your app on your iPhone home screen
 2. Open it
