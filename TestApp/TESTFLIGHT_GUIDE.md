@@ -65,13 +65,25 @@ See `HOW_TO_TEST.md` for this method.
 
 ## Step 2: Create App in App Store Connect
 
+Before you can create the app record you need a **Bundle ID**. If you do not already have one:
+
+1. Go to the [Identifiers](https://developer.apple.com/account/resources/identifiers/list) page in the Apple Developer portal.
+2. Click the **+** button → choose **App IDs** → **App** → **Continue**.
+3. Enter a **Description** (e.g. `WorkoutKitSync`).
+4. Choose **Explicit** for Bundle ID and enter a reverse‑DNS string such as `com.yourname.workoutkitsync`.  
+   Use something unique (usually your domain backwards plus the app name).
+5. Leave capabilities at defaults (you can add more later).
+6. Click **Continue** → **Register**.
+
+Now the Bundle ID will appear in the dropdown inside App Store Connect.
+
 1. In App Store Connect, click **My Apps** → **+** → **New App**
 2. Fill in:
    - **Platform**: iOS
    - **Name**: WorkoutKitSync (or your name)
    - **Primary Language**: English
-   - **Bundle ID**: Create new (e.g., `com.yourname.workoutkitsync`)
-   - **SKU**: Any unique identifier
+   - **Bundle ID**: Select the explicit ID you just registered (e.g., `com.yourname.workoutkitsync`)
+   - **SKU**: Enter any unique string you will recognize (for example `WKSYNC001` or `2024-WorkoutKitSync`). This is internal only.
 3. Click **Create**
 
 ## Step 3: Build Your App in Xcode
