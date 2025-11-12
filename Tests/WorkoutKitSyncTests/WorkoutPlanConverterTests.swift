@@ -10,7 +10,7 @@ import HealthKit
 final class WorkoutPlanConverterTests: XCTestCase {
 
     func testConvertBuildsWarmupBlocksAndCooldown() throws {
-        let dto = try makeDTO()
+        let dto = try makeRunningDTO()
         let converter = WorkoutPlanConverter()
 
         let plan = try converter.convert(dto)
@@ -29,7 +29,7 @@ final class WorkoutPlanConverterTests: XCTestCase {
     }
 
     func testConvertMapsSportTypeToHealthKitActivity() throws {
-        let dto = try makeDTO()
+        let dto = try makeRunningDTO()
         let converter = WorkoutPlanConverter()
 
         let plan = try converter.convert(dto)
@@ -40,7 +40,20 @@ final class WorkoutPlanConverterTests: XCTestCase {
         XCTAssertEqual(workout.activity, .running)
     }
 
-    private func makeDTO() throws -> WKPlanDTO {
+    func testStrengthTrainingDistanceStepsFallbackToOpen() throws {
+        let dto = try makeStrengthTrainingDTO()
+        let converter = WorkoutPlanConverter()
+
+        let plan = try converter.convert(dto)
+        guard case .custom(let workout) = plan.workout else {
+            return XCTFail("Expected custom workout")
+        }
+
+        XCTAssertEqual(workout.activity, .traditionalStrengthTraining)
+        XCTAssertEqual(workout.blocks.flatMap(\.steps).count, 2)
+    }
+
+    private func makeRunningDTO() throws -> WKPlanDTO {
         let json = """
         {
           "title": "Sample Workout",
@@ -57,6 +70,26 @@ final class WorkoutPlanConverterTests: XCTestCase {
               ]
             },
             { "kind": "cooldown", "seconds": 180 }
+          ]
+        }
+        """
+        return try JSONDecoder().decode(WKPlanDTO.self, from: Data(json.utf8))
+    }
+
+    private func makeStrengthTrainingDTO() throws -> WKPlanDTO {
+        let json = """
+        {
+          "title": "Strength Workout",
+          "sportType": "strengthTraining",
+          "intervals": [
+            {
+              "kind": "repeat",
+              "reps": 1,
+              "intervals": [
+                { "kind": "distance", "meters": 20 },
+                { "kind": "reps", "reps": 10, "name": "Push Ups" }
+              ]
+            }
           ]
         }
         """

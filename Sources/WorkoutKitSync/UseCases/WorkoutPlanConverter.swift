@@ -22,11 +22,12 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
     public init() {}
     
     public func convert(_ dto: WKPlanDTO) throws -> WorkoutPlan {
-        let activity = mapSportType(dto.sportType)
+        let sportType = SportType(rawValue: dto.sportType) ?? .other
+        let activity = sportType.toHealthKitActivityType()
         var custom = CustomWorkout(activity: activity)
         custom.displayName = dto.title
         
-        let structure = try buildStructure(from: dto.intervals)
+        let structure = try buildStructure(from: dto.intervals, sportType: sportType)
         custom.warmup = structure.warmup
         custom.blocks = structure.blocks
         custom.cooldown = structure.cooldown
@@ -34,14 +35,8 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
         return WorkoutPlan(.custom(custom))
     }
     
-    private func mapSportType(_ sportType: String) -> HKWorkoutActivityType {
-        guard let type = SportType(rawValue: sportType) else {
-            return .other
-        }
-        return type.toHealthKitActivityType()
-    }
-    
-    private func buildStructure(from intervals: [WKPlanDTO.Interval]) throws -> (warmup: WorkoutStep?, blocks: [IntervalBlock], cooldown: WorkoutStep?) {
+    private func buildStructure(from intervals: [WKPlanDTO.Interval],
+                                sportType: SportType) throws -> (warmup: WorkoutStep?, blocks: [IntervalBlock], cooldown: WorkoutStep?) {
         var warmup: WorkoutStep?
         var cooldown: WorkoutStep?
         var blocks: [IntervalBlock] = []
@@ -77,13 +72,13 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
                 flushCurrentSteps()
                 var intervalSteps: [IntervalStep] = []
                 for step in steps {
-                    intervalSteps.append(contentsOf: try makeIntervalSteps(from: step))
+                    intervalSteps.append(contentsOf: try makeIntervalSteps(from: step, sportType: sportType))
                 }
                 guard !intervalSteps.isEmpty else { continue }
                 var block = IntervalBlock(steps: intervalSteps, iterations: repetitions)
                 blocks.append(block)
             case .step(let step):
-                currentSteps.append(contentsOf: try makeIntervalSteps(from: step))
+                currentSteps.append(contentsOf: try makeIntervalSteps(from: step, sportType: sportType))
             }
         }
         
@@ -91,10 +86,11 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
         return (warmup, blocks, cooldown)
     }
     
-    private func makeIntervalSteps(from step: WKPlanDTO.Interval.Step) throws -> [IntervalStep] {
+    private func makeIntervalSteps(from step: WKPlanDTO.Interval.Step,
+                                   sportType: SportType) throws -> [IntervalStep] {
         var steps: [IntervalStep] = []
         
-        let goal = makeGoal(seconds: step.seconds, meters: step.meters)
+        let goal = makeGoal(seconds: step.seconds, meters: step.meters, sportType: sportType)
         let alert = makeAlert(from: step.target)
         let displayName = step.name
         let workStep = makeWorkoutStep(goal: goal, alert: alert, displayName: displayName)
@@ -109,11 +105,11 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
         return steps
     }
     
-    private func makeGoal(seconds: Int?, meters: Double?) -> WorkoutGoal {
+    private func makeGoal(seconds: Int?, meters: Double?, sportType: SportType) -> WorkoutGoal {
         if let seconds {
             return .time(Double(seconds), .seconds)
         }
-        if let meters {
+        if let meters, sportType.supportsDistanceGoals {
             return .distance(meters, .meters)
         }
         return .open

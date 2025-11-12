@@ -34,6 +34,16 @@ public enum SportType: String, CaseIterable {
             return .other
         }
     }
+    
+    /// Indicates whether the sport type supports distance-based workout goals
+    public var supportsDistanceGoals: Bool {
+        switch self {
+        case .running, .cycling, .swimming:
+            return true
+        case .strengthTraining, .other:
+            return false
+        }
+    }
 }
 #else
 @available(*, unavailable, message: "WorkoutKitSync requires the WorkoutKit framework (iOS 18+/watchOS 11+).")
@@ -43,5 +53,9 @@ public enum SportType: String, CaseIterable {
     case cycling = "cycling"
     case swimming = "swimming"
     case other = "other"
+
+    public var supportsDistanceGoals: Bool {
+        false
+    }
 }
 #endif
