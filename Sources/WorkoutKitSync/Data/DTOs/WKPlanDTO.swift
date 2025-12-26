@@ -14,8 +14,20 @@ public struct WKPlanDTO: Decodable, Sendable {
     let schedule: Schedule?
     let intervals: [Interval]
     
+    /// Public memberwise initializer
+    public init(title: String, sportType: String, schedule: Schedule? = nil, intervals: [Interval]) {
+        self.title = title
+        self.sportType = sportType
+        self.schedule = schedule
+        self.intervals = intervals
+    }
+    
     public struct Schedule: Decodable, Sendable {
         let startLocal: String?
+        
+        public init(startLocal: String? = nil) {
+            self.startLocal = startLocal
+        }
     }
     
     public enum Interval: Decodable, Sendable {
@@ -27,6 +39,11 @@ public struct WKPlanDTO: Decodable, Sendable {
         public struct Target: Decodable, Sendable {
             let hrZone: Int?
             let pace: Double?
+            
+            public init(hrZone: Int? = nil, pace: Double? = nil) {
+                self.hrZone = hrZone
+                self.pace = pace
+            }
         }
         
         public struct Step: Decodable, Sendable {
@@ -38,11 +55,27 @@ public struct WKPlanDTO: Decodable, Sendable {
             let load: Load?
             let restSec: Int?
             let target: Target?
+            
+            public init(kind: String, seconds: Int? = nil, meters: Double? = nil, reps: Int? = nil, name: String? = nil, load: Load? = nil, restSec: Int? = nil, target: Target? = nil) {
+                self.kind = kind
+                self.seconds = seconds
+                self.meters = meters
+                self.reps = reps
+                self.name = name
+                self.load = load
+                self.restSec = restSec
+                self.target = target
+            }
         }
         
         public struct Load: Decodable, Sendable {
             let value: Double
             let unit: String
+            
+            public init(value: Double, unit: String) {
+                self.value = value
+                self.unit = unit
+            }
         }
         
         // Custom decoding implementation using a wrapper struct
