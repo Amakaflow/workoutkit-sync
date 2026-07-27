@@ -12,7 +12,7 @@ public struct WKPlanDTO: Decodable, Sendable {
     let title: String
     let sportType: String
     let schedule: Schedule?
-    let intervals: [Interval]
+    public let intervals: [Interval]
     
     /// Public memberwise initializer
     public init(title: String, sportType: String, schedule: Schedule? = nil, intervals: [Interval]) {
@@ -47,14 +47,14 @@ public struct WKPlanDTO: Decodable, Sendable {
         }
         
         public struct Step: Decodable, Sendable {
-            let kind: String
-            let seconds: Int?
-            let meters: Double?
-            let reps: Int?
-            let name: String?
-            let load: Load?
-            let restSec: Int?
-            let target: Target?
+            public let kind: String
+            public let seconds: Int?
+            public let meters: Double?
+            public let reps: Int?
+            public let name: String?
+            public let load: Load?
+            public let restSec: Int?
+            public let target: Target?
             
             public init(kind: String, seconds: Int? = nil, meters: Double? = nil, reps: Int? = nil, name: String? = nil, load: Load? = nil, restSec: Int? = nil, target: Target? = nil) {
                 self.kind = kind
