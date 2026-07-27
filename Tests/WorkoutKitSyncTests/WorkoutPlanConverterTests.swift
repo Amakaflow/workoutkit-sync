@@ -76,6 +76,64 @@ final class WorkoutPlanConverterTests: XCTestCase {
         return try JSONDecoder().decode(WKPlanDTO.self, from: Data(json.utf8))
     }
 
+    // displayName assertions require iOS 18 / watchOS 11+ runtime (package platform floor).
+
+    func testRepsStepSetsDisplayNameWithRepCount() throws {
+        let dto = WKPlanDTO(
+            title: "Upper",
+            sportType: "strengthTraining",
+            intervals: [
+                .repeatSet(reps: 3, intervals: [
+                    .init(kind: "reps", reps: 8, name: "Pull-Ups · 25lb", restSec: 90)
+                ])
+            ]
+        )
+        let plan = try WorkoutPlanConverter().convert(dto)
+        guard case .custom(let workout) = plan.workout else {
+            return XCTFail("Expected custom workout")
+        }
+        XCTAssertEqual(workout.blocks.count, 1)
+        XCTAssertEqual(workout.blocks[0].iterations, 3)
+        let work = workout.blocks[0].steps.first { $0.purpose == .work }
+        XCTAssertEqual(work?.step.displayName, "Pull-Ups · 25lb · 8 reps")
+        XCTAssertEqual(workout.blocks[0].steps.filter { $0.purpose == .recovery }.count, 1)
+    }
+
+    func testNilRestSecOmitsRecoveryStep() throws {
+        let dto = WKPlanDTO(
+            title: "Upper",
+            sportType: "strengthTraining",
+            intervals: [
+                .repeatSet(reps: 2, intervals: [
+                    .init(kind: "reps", reps: 10, name: "Curl", restSec: nil)
+                ])
+            ]
+        )
+        let plan = try WorkoutPlanConverter().convert(dto)
+        guard case .custom(let workout) = plan.workout else {
+            return XCTFail("Expected custom workout")
+        }
+        XCTAssertEqual(workout.blocks[0].steps.count, 1)
+        XCTAssertEqual(workout.blocks[0].steps[0].purpose, .work)
+    }
+
+    func testZeroIterationsThrowsConversionError() throws {
+        let dto = WKPlanDTO(
+            title: "Bad",
+            sportType: "strengthTraining",
+            intervals: [
+                .repeatSet(reps: 0, intervals: [
+                    .init(kind: "reps", reps: 8, name: "Pull-Ups")
+                ])
+            ]
+        )
+        XCTAssertThrowsError(try WorkoutPlanConverter().convert(dto)) { error in
+            guard case WorkoutPlanConversionError.zeroIterations = error else {
+                return XCTFail("Expected zeroIterations, got \(error)")
+            }
+        }
+    }
+
     private func makeStrengthTrainingDTO() throws -> WKPlanDTO {
         let json = """
         {

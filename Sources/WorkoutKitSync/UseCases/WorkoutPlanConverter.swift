@@ -74,7 +74,14 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
                 for step in steps {
                     intervalSteps.append(contentsOf: try makeIntervalSteps(from: step, sportType: sportType))
                 }
-                guard !intervalSteps.isEmpty else { continue }
+                guard repetitions >= 1 else {
+                    let name = steps.first?.name
+                    throw WorkoutPlanConversionError.zeroIterations(exerciseName: name)
+                }
+                guard !intervalSteps.isEmpty else {
+                    let name = steps.first?.name
+                    throw WorkoutPlanConversionError.emptyBlockSteps(exerciseName: name)
+                }
                 var block = IntervalBlock(steps: intervalSteps, iterations: repetitions)
                 blocks.append(block)
             case .step(let step):
@@ -92,7 +99,7 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
         
         let goal = makeGoal(seconds: step.seconds, meters: step.meters, sportType: sportType)
         let alert = makeAlert(from: step.target)
-        let displayName = step.name
+        let displayName = Self.strengthDisplayName(name: step.name, reps: step.reps)
         let workStep = makeWorkoutStep(goal: goal, alert: alert, displayName: displayName)
         steps.append(IntervalStep(.work, step: workStep))
         
@@ -103,6 +110,13 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
         }
         
         return steps
+    }
+    
+
+    static func strengthDisplayName(name: String?, reps: Int?) -> String? {
+        guard let reps else { return name }
+        let base = (name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "Exercise"
+        return "\(base) · \(reps) reps"
     }
     
     private func makeGoal(seconds: Int?, meters: Double?, sportType: SportType) -> WorkoutGoal {
