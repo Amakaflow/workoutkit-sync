@@ -134,6 +134,23 @@ final class WorkoutPlanConverterTests: XCTestCase {
         }
     }
 
+    func testEmptyRepeatSetIntervalsThrowsEmptyBlockSteps() throws {
+        let dto = WKPlanDTO(
+            title: "Bad",
+            sportType: "strengthTraining",
+            intervals: [
+                .repeatSet(reps: 2, intervals: [])
+            ]
+        )
+        XCTAssertThrowsError(try WorkoutPlanConverter().convert(dto)) { error in
+            guard case WorkoutPlanConversionError.emptyBlockSteps = error else {
+                return XCTFail("Expected emptyBlockSteps, got \(error)")
+            }
+        }
+    }
+
+
+
     private func makeStrengthTrainingDTO() throws -> WKPlanDTO {
         let json = """
         {
