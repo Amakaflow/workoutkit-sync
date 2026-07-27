@@ -48,6 +48,7 @@ public struct WorkoutPlanService: WorkoutPlanServiceProtocol {
         let scheduledDate = dateComponents ?? defaultScheduleDateComponents()
         let scheduler = schedulerProvider()
         try await ensureAuthorization(using: scheduler)
+        // Follow-up AMA-2329: WorkoutComposition export / AirDrop .workout share
         await scheduler.schedule(plan, at: scheduledDate)
     }
     
