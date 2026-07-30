@@ -13,13 +13,58 @@ public struct WKPlanDTO: Decodable, Sendable {
     let sportType: String
     let schedule: Schedule?
     public let intervals: [Interval]
+    /// Mapper SportRouter desired composition (AMA-2350 / AMA-2351).
+    public let composition: String
+    /// What the DTO body actually encodes (may lag desired until P2/P3).
+    public let compositionEffective: String
+    /// Machine reason code for preview / telemetry.
+    public let routingReason: String
     
     /// Public memberwise initializer
-    public init(title: String, sportType: String, schedule: Schedule? = nil, intervals: [Interval]) {
+    public init(
+        title: String,
+        sportType: String,
+        schedule: Schedule? = nil,
+        intervals: [Interval],
+        composition: String = "custom",
+        compositionEffective: String? = nil,
+        routingReason: String = "legacy_unspecified"
+    ) {
         self.title = title
         self.sportType = sportType
         self.schedule = schedule
         self.intervals = intervals
+        self.composition = composition
+        self.compositionEffective = compositionEffective ?? composition
+        self.routingReason = routingReason
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case title, sportType, schedule, intervals
+        case composition
+        case compositionEffective = "composition_effective"
+        case routingReason = "routing_reason"
+        // Also accept camelCase from some clients
+        case compositionEffectiveCamel = "compositionEffective"
+        case routingReasonCamel = "routingReason"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = try container.decode(String.self, forKey: .title)
+        sportType = try container.decode(String.self, forKey: .sportType)
+        schedule = try container.decodeIfPresent(Schedule.self, forKey: .schedule)
+        intervals = try container.decode([Interval].self, forKey: .intervals)
+        composition = try container.decodeIfPresent(String.self, forKey: .composition) ?? "custom"
+        if let effective = try container.decodeIfPresent(String.self, forKey: .compositionEffective)
+            ?? container.decodeIfPresent(String.self, forKey: .compositionEffectiveCamel) {
+            compositionEffective = effective
+        } else {
+            compositionEffective = composition
+        }
+        routingReason = try container.decodeIfPresent(String.self, forKey: .routingReason)
+            ?? container.decodeIfPresent(String.self, forKey: .routingReasonCamel)
+            ?? "legacy_unspecified"
     }
     
     public struct Schedule: Decodable, Sendable {
@@ -65,6 +110,35 @@ public struct WKPlanDTO: Decodable, Sendable {
                 self.load = load
                 self.restSec = restSec
                 self.target = target
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case kind, seconds, meters, reps, name, load, restSec, target
+            }
+
+            public init(from decoder: Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                kind = try container.decode(String.self, forKey: .kind)
+                seconds = try container.decodeIfPresent(Int.self, forKey: .seconds)
+                meters = try container.decodeIfPresent(Double.self, forKey: .meters)
+                reps = try container.decodeIfPresent(Int.self, forKey: .reps)
+                load = try container.decodeIfPresent(Load.self, forKey: .load)
+                restSec = try container.decodeIfPresent(Int.self, forKey: .restSec)
+
+                var resolvedName = try container.decodeIfPresent(String.self, forKey: .name)
+                var resolvedTarget: Target?
+                if container.contains(.target) {
+                    if let structured = try? container.decode(Target.self, forKey: .target) {
+                        resolvedTarget = structured
+                    } else if let legacyDisplay = try? container.decode(String.self, forKey: .target) {
+                        // Pre-cutover mapper put display text in `target`.
+                        if resolvedName == nil || resolvedName?.isEmpty == true {
+                            resolvedName = legacyDisplay
+                        }
+                    }
+                }
+                name = resolvedName
+                target = resolvedTarget
             }
         }
         
