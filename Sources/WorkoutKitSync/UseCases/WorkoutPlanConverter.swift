@@ -96,6 +96,20 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
     private func makeIntervalSteps(from step: WKPlanDTO.Interval.Step,
                                    sportType: SportType) throws -> [IntervalStep] {
         var steps: [IntervalStep] = []
+
+        // Mapper RestStep (AMA-2351): recovery, not work — tap (open) or timed.
+        if step.kind == "rest" {
+            let restGoal: WorkoutGoal
+            if let seconds = step.seconds {
+                restGoal = .time(Double(seconds), .seconds)
+            } else {
+                restGoal = .open
+            }
+            let restName = step.name ?? "Rest"
+            let restStep = makeWorkoutStep(goal: restGoal, alert: nil, displayName: restName)
+            steps.append(IntervalStep(.recovery, step: restStep))
+            return steps
+        }
         
         let goal = makeGoal(seconds: step.seconds, meters: step.meters, sportType: sportType)
         let alert = makeAlert(from: step.target)
