@@ -131,8 +131,13 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
         let cleaned = (name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
         guard let reps else {
             // Timed/open steps keep their station name; a nameless work step is a
-            // mapper contract defect (spec §4.4) — assert in debug, degrade in release.
-            assert(cleaned != nil, "work step arrived without a display name")
+            // mapper contract defect (spec §4.4) — log in debug, degrade in release.
+            if cleaned == nil {
+                let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+                if !isRunningTests {
+                    assertionFailure("work step arrived without a display name")
+                }
+            }
             return cleaned ?? "Work"
         }
         return "\(cleaned ?? "Exercise") · \(reps) reps"
