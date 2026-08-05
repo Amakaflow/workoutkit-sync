@@ -134,6 +134,24 @@ final class WorkoutPlanConverterTests: XCTestCase {
         }
     }
 
+    func testTimedStepWithoutRepsKeepsName() throws {
+        let dto = makePlanDTO(steps: [makeStep(name: "EMOM · Assault Bike", seconds: 60, reps: nil)])
+        let workout = try WorkoutPlanConverter().convert(dto)
+        guard case .custom(let custom) = workout.workout else {
+            return XCTFail("Expected custom workout")
+        }
+        XCTAssertEqual(firstWorkStepDisplayName(of: custom), "EMOM · Assault Bike")
+    }
+
+    func testNamelessTimedStepFallsBackToWork() throws {
+        let dto = makePlanDTO(steps: [makeStep(name: nil, seconds: 60, reps: nil)])
+        let workout = try WorkoutPlanConverter().convert(dto)
+        guard case .custom(let custom) = workout.workout else {
+            return XCTFail("Expected custom workout")
+        }
+        XCTAssertEqual(firstWorkStepDisplayName(of: custom), "Work")
+    }
+
     func testEmptyRepeatSetIntervalsThrowsEmptyBlockSteps() throws {
         let dto = WKPlanDTO(
             title: "Bad",
@@ -150,6 +168,22 @@ final class WorkoutPlanConverterTests: XCTestCase {
     }
 
 
+
+    private func makePlanDTO(steps: [WKPlanDTO.Interval.Step]) -> WKPlanDTO {
+        WKPlanDTO(
+            title: "Upper",
+            sportType: "strengthTraining",
+            intervals: [.repeatSet(reps: 1, intervals: steps)]
+        )
+    }
+
+    private func makeStep(name: String?, seconds: Int, reps: Int?) -> WKPlanDTO.Interval.Step {
+        WKPlanDTO.Interval.Step(kind: "time", seconds: seconds, reps: reps, name: name)
+    }
+
+    private func firstWorkStepDisplayName(of workout: CustomWorkout) -> String? {
+        workout.blocks.flatMap(\.steps).first { $0.purpose == .work }?.step.displayName
+    }
 
     private func makeStrengthTrainingDTO() throws -> WKPlanDTO {
         let json = """
