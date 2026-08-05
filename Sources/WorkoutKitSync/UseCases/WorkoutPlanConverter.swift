@@ -128,9 +128,14 @@ public struct WorkoutPlanConverter: WorkoutPlanConverterProtocol {
     
 
     static func strengthDisplayName(name: String?, reps: Int?) -> String? {
-        guard let reps else { return name }
-        let base = (name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "Exercise"
-        return "\(base) · \(reps) reps"
+        let cleaned = (name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+        guard let reps else {
+            // Timed/open steps keep their station name; a nameless work step is a
+            // mapper contract defect (spec §4.4) — assert in debug, degrade in release.
+            assert(cleaned != nil, "work step arrived without a display name")
+            return cleaned ?? "Work"
+        }
+        return "\(cleaned ?? "Exercise") · \(reps) reps"
     }
     
     private func makeGoal(seconds: Int?, meters: Double?, sportType: SportType) -> WorkoutGoal {
